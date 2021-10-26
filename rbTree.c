@@ -3,7 +3,7 @@
  * @Date:   17-Oct-2021
  * @Email:  cm656879@outlook.com
  * @Last modified by:   chris
- * @Last modified time: 26-Oct-2021
+ * @Last modified time: 27-Oct-2021
  */
 
 #include<stdio.h>
@@ -121,13 +121,13 @@ void RightRotate(RbTree *rbTree, RbTreeNode *rotNode)
 
 void RbTreeInsertFixup(RbTree *rbTree, RbTreeNode *fixNode)
 {
-	while(fixNode->parent->color == RED)
+	while((fixNode->parent != rbTree->nil) && (fixNode->parent->color == RED))
 	{
 		if(fixNode->parent == fixNode->parent->parent->left)
 		{
 			RbTreeNode *y = fixNode->parent->parent->right;
 
-			if(y->color == RED)
+			if((y != rbTree->nil) && (y->color == RED))
 			{
 				fixNode->parent->color = BLACK;
 				y->color = BLACK;
@@ -156,7 +156,7 @@ void RbTreeInsertFixup(RbTree *rbTree, RbTreeNode *fixNode)
 		else
 		{
 			RbTreeNode *y = fixNode->parent->parent->left;
-			if(y->color == RED)
+			if((y != rbTree->nil) && (y->color == RED))
 			{
 				fixNode->parent->color = BLACK;
 				y->color = BLACK;
@@ -170,7 +170,7 @@ void RbTreeInsertFixup(RbTree *rbTree, RbTreeNode *fixNode)
 				{
 					fixNode->parent->color = BLACK;
 					fixNode->parent->parent->color = RED;
-					LeftRotate(rbTree, fixNode->parent);
+					LeftRotate(rbTree, fixNode->parent->parent);
 				}
 				//RL型-->右旋+左旋
 				else
@@ -185,6 +185,7 @@ void RbTreeInsertFixup(RbTree *rbTree, RbTreeNode *fixNode)
 	}
 
 	rbTree->root->color = BLACK;
+	rbTree->root->parent = rbTree->nil;
 }
 
 void RbTreeInsert(RbTree *rbTree, RbTreeNode *insertNode)
@@ -434,9 +435,47 @@ void RbTreeDel(RbTree *rbTree, RbTreeNode *delNode)
 	return;
 }
 
+RbTreeNode *RbTreeNodeCreate(int key, void* value)
+{
+	RbTreeNode *rbTreeNode = malloc(sizeof(RbTreeNode));
+	memset(rbTreeNode, 0 , sizeof(RbTreeNode));
+	rbTreeNode->key = key;
+	rbTreeNode->value = value;
+
+	return rbTreeNode;
+}
+
+void PrintRbTreeNode(RbTreeNode *rbTreeNode)
+{
+	printf("Addr:%x|key:%d|color:%x|value:%s|left:%x|right:%x|parent:%x\n",
+	(int)rbTreeNode, rbTreeNode->key, rbTreeNode->color, rbTreeNode->value, (int)rbTreeNode->left, (int)rbTreeNode->right, (int)rbTreeNode->parent);
+	return;
+}
+
 int main()
 {
-	printf("succ!\n");
+	RbTree *rbTree1 = malloc(sizeof(RbTree));
+	//printf("rbTree1->root:%x|rbTree1->nil:%x\n", (int)(rbTree1->root), (int)(rbTree1->nil));
+	rbTree1->root = NULL;
+	rbTree1->nil = NULL;
 
+	RbTreeNode *rbTreeNode1 = RbTreeNodeCreate(1234, "hello");
+	RbTreeNode *rbTreeNode2 = RbTreeNodeCreate(12, "hellokitty");
+	RbTreeNode *rbTreeNode3 = RbTreeNodeCreate(123, "hellonimabidekitty");
+	//printf("rbTree1->root:%x|rbTree1->nil:%x\n", (int)(rbTree1->root), (int)(rbTree1->nil));
+	//printf("key:%x|color:%x\n", rbTree1->root->key, rbTree1->root->color);
+
+	RbTreeInsert(rbTree1, rbTreeNode1);
+	RbTreeInsert(rbTree1, rbTreeNode2);
+	RbTreeInsert(rbTree1, rbTreeNode3);
+
+	//PrintRbTreeNode(rbTree1->root);
+	PrintRbTreeNode(rbTreeNode1);
+	PrintRbTreeNode(rbTreeNode2);
+	PrintRbTreeNode(rbTreeNode3);
+
+	//printf("rbTree1->root:%x|rbTree1->nil:%x\n", (int)(rbTree1->root), (int)(rbTree1->nil));
+	//printf("key:%d|color:%x|value:%s|left:%x|right:%s\n", rbTree1->root->key, rbTree1->root->color, rbTree1->root->value);
+	//printf("key:%d|color:%x|value:%s\n", rbTree1->root->right->key, rbTree1->root->right->color, rbTree1->root->right->value);
 	return 0;
 }
