@@ -455,27 +455,20 @@ void PrintRbTreeNode(RbTreeNode *rbTreeNode)
 int main()
 {
 	RbTree *rbTree1 = malloc(sizeof(RbTree));
-	//printf("rbTree1->root:%x|rbTree1->nil:%x\n", (int)(rbTree1->root), (int)(rbTree1->nil));
 	rbTree1->root = NULL;
 	rbTree1->nil = NULL;
 
 	RbTreeNode *rbTreeNode1 = RbTreeNodeCreate(1234, "hello");
 	RbTreeNode *rbTreeNode2 = RbTreeNodeCreate(12, "hellokitty");
 	RbTreeNode *rbTreeNode3 = RbTreeNodeCreate(123, "hellonimabidekitty");
-	//printf("rbTree1->root:%x|rbTree1->nil:%x\n", (int)(rbTree1->root), (int)(rbTree1->nil));
-	//printf("key:%x|color:%x\n", rbTree1->root->key, rbTree1->root->color);
 
 	RbTreeInsert(rbTree1, rbTreeNode1);
 	RbTreeInsert(rbTree1, rbTreeNode2);
 	RbTreeInsert(rbTree1, rbTreeNode3);
 
-	//PrintRbTreeNode(rbTree1->root);
 	PrintRbTreeNode(rbTreeNode1);
 	PrintRbTreeNode(rbTreeNode2);
 	PrintRbTreeNode(rbTreeNode3);
 
-	//printf("rbTree1->root:%x|rbTree1->nil:%x\n", (int)(rbTree1->root), (int)(rbTree1->nil));
-	//printf("key:%d|color:%x|value:%s|left:%x|right:%s\n", rbTree1->root->key, rbTree1->root->color, rbTree1->root->value);
-	//printf("key:%d|color:%x|value:%s\n", rbTree1->root->right->key, rbTree1->root->right->color, rbTree1->root->right->value);
 	return 0;
 }
