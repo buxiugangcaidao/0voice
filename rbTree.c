@@ -3,7 +3,7 @@
  * @Date:   17-Oct-2021
  * @Email:  cm656879@outlook.com
  * @Last modified by:   chris
- * @Last modified time: 27-Oct-2021
+ * @Last modified time: 28-Oct-2021
  */
 
 #include<stdio.h>
@@ -15,6 +15,8 @@
 
 #define RED 1
 #define BLACK 2
+
+#define NODENUM 20
 
 typedef struct RbTreeNode
 {
@@ -46,7 +48,9 @@ RbTreeNode* AllocRbTreeNode()
 void DelRbTreeNode(RbTree *rbTree, RbTreeNode *delNode)
 {
 	if(delNode->parent == rbTree->nil)
-		free(delNode);
+	{
+		return;
+	}
 
 	if(delNode == delNode->parent->left)
 	{
@@ -56,7 +60,6 @@ void DelRbTreeNode(RbTree *rbTree, RbTreeNode *delNode)
 	{
 		delNode->parent->right = rbTree->nil;
 	}
-	free(delNode);
 
 	return;
 }
@@ -257,7 +260,6 @@ void RbTreeDelBlackNoleaf(RbTree *rbTree, RbTreeNode *delNode)
 
 		delNodeSon->parent = delNode->parent;
 		delNodeSon->color = BLACK;
-		free(delNode);
 	}
 
 	return;
@@ -270,15 +272,19 @@ void RbTreeDelRedLeaf(RbTree *rbTree, RbTreeNode *delNode)
 
 void RbTreeDelBlackLeaf(RbTree *rbTree, RbTreeNode *delNode)
 {
+	RbTreeNode *delNodeBak = delNode;
 	while(delNode->parent != rbTree->nil)
 	{
 		RbTreeNode *broNode;
 		if(delNode == delNode->parent->left)
 		{
 			broNode = delNode->parent->right;
+			if(broNode == rbTree->nil)
+				break;
+
 			if(broNode->color == RED)
 			{
-				delNode->parent->color = BLACK;
+				delNode->parent->color = RED;
 				broNode->color = BLACK;
 				LeftRotate(rbTree, delNode->parent);
 				continue;
@@ -326,7 +332,7 @@ void RbTreeDelBlackLeaf(RbTree *rbTree, RbTreeNode *delNode)
 		else
 		{
 			broNode = delNode->parent->left;
-			if(broNode->color == RED)
+			if((broNode != rbTree->nil) && (broNode->color == RED))
 			{
 				delNode->parent->color = BLACK;
 				broNode->color = BLACK;
@@ -335,7 +341,7 @@ void RbTreeDelBlackLeaf(RbTree *rbTree, RbTreeNode *delNode)
 			}
 			else
 			{
-				if(broNode->left->color == RED)
+				if((broNode != rbTree->nil) && (broNode->left != rbTree->nil) && (broNode->left->color == RED))
 				{
 					int tmpColor = delNode->parent->color;
 					delNode->parent->color = broNode->color;
@@ -346,7 +352,7 @@ void RbTreeDelBlackLeaf(RbTree *rbTree, RbTreeNode *delNode)
 				}
 				else
 				{
-					if(broNode->right->color == RED)
+					if((broNode != rbTree->nil) && (broNode->right != rbTree->nil) && (broNode->right->color == RED))
 					{
 						int tmpColor = delNode->parent->color;
 						delNode->parent->color = BLACK;
@@ -375,7 +381,7 @@ void RbTreeDelBlackLeaf(RbTree *rbTree, RbTreeNode *delNode)
 		}
 	}
 
-	DelRbTreeNode(rbTree, delNode);
+	DelRbTreeNode(rbTree, delNodeBak);
 }
 
 void RbTreeDel(RbTree *rbTree, RbTreeNode *delNode)
@@ -400,10 +406,12 @@ void RbTreeDel(RbTree *rbTree, RbTreeNode *delNode)
 				{
 					printf("[%d][%s]ERR:node color err!\n", __LINE__, __FUNCTION__);
 				}
+				break;
 			}
 			else//右子树不为空，此时仅有一种情况，即删除节点为黑色，右子节点为红色；
 			{
 				RbTreeDelBlackNoleaf(rbTree, delNode);
+				break;
 			}
 		}
 		else//左子树不为空
@@ -411,11 +419,12 @@ void RbTreeDel(RbTree *rbTree, RbTreeNode *delNode)
 			if(delNode->right == rbTree->nil)//右子树为空
 			{
 				RbTreeDelBlackNoleaf(rbTree, delNode);
+				break;
 			}
 			else//左右子树都不为空
 			{
 				RbTreeNode *tempNode = delNode->right;
-				while(tempNode != rbTree->nil)
+				while(tempNode->left != rbTree->nil)
 				{
 					tempNode = tempNode->left;
 				}
@@ -447,28 +456,202 @@ RbTreeNode *RbTreeNodeCreate(int key, void* value)
 
 void PrintRbTreeNode(RbTreeNode *rbTreeNode)
 {
-	printf("Addr:%x|key:%d|color:%x|value:%s|left:%x|right:%x|parent:%x\n",
-	(int)rbTreeNode, rbTreeNode->key, rbTreeNode->color, rbTreeNode->value, (int)rbTreeNode->left, (int)rbTreeNode->right, (int)rbTreeNode->parent);
+	printf("Addr:%8x|key:%2d|color:%x|value:%s|left:%8x|right:%8x|parent:%8x\n",
+	(unsigned int)rbTreeNode, rbTreeNode->key, rbTreeNode->color, (char *)rbTreeNode->value, (unsigned int)rbTreeNode->left, (unsigned int)rbTreeNode->right, (unsigned int)rbTreeNode->parent);
 	return;
 }
 
-int main()
+void TestDelBlackLeafNodeBroRed()
 {
 	RbTree *rbTree1 = malloc(sizeof(RbTree));
 	rbTree1->root = NULL;
 	rbTree1->nil = NULL;
 
-	RbTreeNode *rbTreeNode1 = RbTreeNodeCreate(1234, "hello");
-	RbTreeNode *rbTreeNode2 = RbTreeNodeCreate(12, "hellokitty");
-	RbTreeNode *rbTreeNode3 = RbTreeNodeCreate(123, "hellonimabidekitty");
+	RbTreeNode *rbTreeNode[NODENUM];
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		rbTreeNode[i] = RbTreeNodeCreate(2*i, "i");
+		RbTreeInsert(rbTree1, rbTreeNode[i]);
+	}
 
-	RbTreeInsert(rbTree1, rbTreeNode1);
-	RbTreeInsert(rbTree1, rbTreeNode2);
-	RbTreeInsert(rbTree1, rbTreeNode3);
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+	printf("DELNODE\n");
 
-	PrintRbTreeNode(rbTreeNode1);
-	PrintRbTreeNode(rbTreeNode2);
-	PrintRbTreeNode(rbTreeNode3);
+	RbTreeDel(rbTree1, rbTreeNode[12]);
+	RbTreeDel(rbTree1, rbTreeNode[14]);
+	RbTreeDel(rbTree1, rbTreeNode[13]);
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		free(rbTreeNode[i]);
+		rbTreeNode[i] = NULL;
+	}
+	printf("===================[%s]===================\n", __FUNCTION__);
+
+	return;
+}
+
+void TestDelBlackLeafNodeFarNephRed()
+{
+	RbTree *rbTree1 = malloc(sizeof(RbTree));
+	rbTree1->root = NULL;
+	rbTree1->nil = NULL;
+
+	RbTreeNode *rbTreeNode[NODENUM];
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		rbTreeNode[i] = RbTreeNodeCreate(2*i, "i");
+		RbTreeInsert(rbTree1, rbTreeNode[i]);
+	}
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+	printf("DELNODE\n");
+
+	RbTreeNode *rbTreeNode29 = RbTreeNodeCreate(29, "j");
+	RbTreeInsert(rbTree1, rbTreeNode29);
+	RbTreeDel(rbTree1, rbTreeNode[12]);
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+	PrintRbTreeNode(rbTreeNode29);
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		free(rbTreeNode[i]);
+		rbTreeNode[i] = NULL;
+	}
+	printf("===================[%s]===================\n", __FUNCTION__);
+	return;
+}
+
+void TestDelBlackLeafNodeNearNephRed()
+{
+	RbTree *rbTree1 = malloc(sizeof(RbTree));
+	rbTree1->root = NULL;
+	rbTree1->nil = NULL;
+
+	RbTreeNode *rbTreeNode[NODENUM];
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		rbTreeNode[i] = RbTreeNodeCreate(2*i, "i");
+		RbTreeInsert(rbTree1, rbTreeNode[i]);
+	}
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+	printf("DELNODE\n");
+
+	RbTreeNode *rbTreeNode27 = RbTreeNodeCreate(27, "j");
+	RbTreeInsert(rbTree1, rbTreeNode27);
+	RbTreeDel(rbTree1, rbTreeNode[12]);
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+	PrintRbTreeNode(rbTreeNode27);
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		free(rbTreeNode[i]);
+		rbTreeNode[i] = NULL;
+	}
+	printf("===================[%s]===================\n", __FUNCTION__);
+	return;
+}
+
+void TestDelBlackLeafNodeParentRed()
+{
+	RbTree *rbTree1 = malloc(sizeof(RbTree));
+	rbTree1->root = NULL;
+	rbTree1->nil = NULL;
+
+	RbTreeNode *rbTreeNode[NODENUM];
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		rbTreeNode[i] = RbTreeNodeCreate(2*i, "i");
+		RbTreeInsert(rbTree1, rbTreeNode[i]);
+	}
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+	printf("DELNODE\n");
+
+	RbTreeDel(rbTree1, rbTreeNode[12]);
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		free(rbTreeNode[i]);
+		rbTreeNode[i] = NULL;
+	}
+	printf("===================[%s]===================\n", __FUNCTION__);
+	return;
+}
+
+void TestDelBlackLeafNodeParentBlack()
+{
+	RbTree *rbTree1 = malloc(sizeof(RbTree));
+	rbTree1->root = NULL;
+	rbTree1->nil = NULL;
+
+	RbTreeNode *rbTreeNode[NODENUM];
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		rbTreeNode[i] = RbTreeNodeCreate(2*i, "i");
+		RbTreeInsert(rbTree1, rbTreeNode[i]);
+	}
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+	printf("DELNODE\n");
+
+	RbTreeDel(rbTree1, rbTreeNode[9]);
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		PrintRbTreeNode(rbTreeNode[i]);
+	}
+
+	for(short i = 0; i < NODENUM; ++i)
+	{
+		free(rbTreeNode[i]);
+		rbTreeNode[i] = NULL;
+	}
+	printf("===================[%s]===================\n", __FUNCTION__);
+	return;
+}
+
+int main()
+{
+	TestDelBlackLeafNodeBroRed();
+	TestDelBlackLeafNodeFarNephRed();
+	TestDelBlackLeafNodeNearNephRed();
+	TestDelBlackLeafNodeParentRed();
+	TestDelBlackLeafNodeParentBlack();
 
 	return 0;
 }
